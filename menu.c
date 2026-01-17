@@ -16,6 +16,7 @@
 #include <wayland-client-protocol.h>
 #include <xkbcommon/xkbcommon.h>
 
+#include "config.h"
 #include "menu.h"
 
 #include "pango.h"
@@ -26,13 +27,13 @@
 struct menu *menu_create(menu_callback callback) {
 	struct menu *menu = calloc(1, sizeof(struct menu));
 	menu->strncmp = strncmp;
-	menu->font = "monospace 10";
-	menu->normalbg = 0x222222ff;
-	menu->normalfg = 0xbbbbbbff;
-	menu->promptbg = 0x005577ff;
-	menu->promptfg = 0xeeeeeeff;
-	menu->selectionbg = 0x005577ff;
-	menu->selectionfg = 0xeeeeeeff;
+	menu->font = "JetBrainsMono Nerd Font Mono 16";
+	menu->normalbg = dwlb_middle_bg;
+	menu->normalfg = dwlb_middle_fg;
+	menu->promptbg = dwlb_middle_bg;
+	menu->promptfg = dwlb_middle_fg;
+	menu->selectionbg = dwlb_middle_bg;
+	menu->selectionfg = dwlb_middle_fg;
 	menu->callback = callback;
 	menu->test_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
 	menu->test_cairo = cairo_create(menu->test_surface);
@@ -85,11 +86,10 @@ static bool parse_color(const char *color, uint32_t *result) {
 // Parse menu options from command line arguments.
 void menu_getopts(struct menu *menu, int argc, char *argv[]) {
 	const char *usage =
-		"Usage: wmenu [-bciPv] [-f font] [-l lines] [-o output] [-p prompt]\n"
+		"Usage: wmenu [-bcitPv] [-f font] [-l lines] [-o output] [-p prompt]\n"
 		"\t[-N color] [-n color] [-M color] [-m color] [-S color] [-s color] [-w minwidth]\n";
-
 	int opt;
-	while ((opt = getopt(argc, argv, "bchiPvf:l:o:p:N:n:M:m:S:s:w:")) != -1) {
+	while ((opt = getopt(argc, argv, "bchitPvf:l:o:p:N:n:M:m:S:s:w:")) != -1) {
 		switch (opt) {
 		case 'b':
 			menu->position = POSITION_BOTTOM;
@@ -99,6 +99,9 @@ void menu_getopts(struct menu *menu, int argc, char *argv[]) {
 			break;
 		case 'i':
 			menu->strncmp = strncasecmp;
+			break;
+		case 't':
+			menu->position = POSITION_TOP_CENTER;
 			break;
 		case 'P':
 			menu->passwd = true;
@@ -168,7 +171,7 @@ void menu_getopts(struct menu *menu, int argc, char *argv[]) {
 
 	int height = get_font_height(menu->font);
 	menu->line_height = height + 2;
-	menu->height = menu->line_height;
+	menu->height = dwlb_bar_height;
 	if (menu->lines > 0) {
 		menu->height += menu->height * menu->lines;
 	}

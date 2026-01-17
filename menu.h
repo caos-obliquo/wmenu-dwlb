@@ -31,6 +31,7 @@ enum e_position {
 	POSITION_TOP,
 	POSITION_BOTTOM,
 	POSITION_CENTER,
+	POSITION_TOP_CENTER,  //  <-- real based 
 };
 
 typedef enum e_position POSITION;

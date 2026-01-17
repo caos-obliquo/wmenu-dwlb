@@ -21,7 +21,18 @@
 #include "wayland.h"
 #include "xdg-activation-v1-client-protocol.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
+#include "config.h"
 
+
+static bool read_bar_geometry(uint32_t *left, uint32_t *width, uint32_t *height) {
+	FILE *f = fopen("/tmp/dwlb-geometry", "r");
+	if (!f) return false;
+	
+	int result = fscanf(f, "%u %u %u", left, width, height);
+	fclose(f);
+	
+	return result == 3;
+}
 // A Wayland output.
 struct output {
 	struct wl_context *context;
@@ -457,6 +468,9 @@ int menu_run(struct menu *menu) {
 		case POSITION_TOP: 
 			anchor |= ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP;
 			break;
+		case POSITION_TOP_CENTER:
+			anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT;
+		break;
 		case POSITION_CENTER:
 			anchor |= ZWLR_LAYER_SURFACE_V1_ANCHOR_TOP | ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
 			// we will handle this in rendering.
@@ -466,20 +480,31 @@ int menu_run(struct menu *menu) {
 
 	if (menu->position == POSITION_CENTER) {
 		calc_widths(menu);
-
 		menu->width = menu->promptw + menu->inputw + 2 * menu->padding;
-		menu->width = MAX(menu->width, menu->minwidth); // Ensure minimum width
 		zwlr_layer_surface_v1_set_margin(layer_surface, -1, -1, -1, -1);
 		zwlr_layer_surface_v1_set_size(layer_surface, menu->width, menu->height);
-	} else {
-		zwlr_layer_surface_v1_set_size(layer_surface, 0, menu->height);
+	} else if (menu->position == POSITION_TOP_CENTER) {
+		uint32_t bar_left = 0, bar_width = 0, bar_height = 0;
+		
+		if (read_bar_geometry(&bar_left, &bar_width, &bar_height)) {
+			// Got geometry from dwlb - use it!
+			menu->height = bar_height;
+			
+			// Get screen width from output
+			
+			zwlr_layer_surface_v1_set_margin(layer_surface, 0, -1, 0, bar_left); /* -1 means auto */
+			zwlr_layer_surface_v1_set_size(layer_surface, bar_width, menu->height);
+		} else {
+			// Fallback to config.h values
+			zwlr_layer_surface_v1_set_margin(layer_surface, 0, CALCULATE_RIGHT_MARGIN(), 0, CALCULATE_LEFT_MARGIN());
+			zwlr_layer_surface_v1_set_size(layer_surface, 0, menu->height);
+		}
 	}
 
 	zwlr_layer_surface_v1_set_anchor(layer_surface, anchor);
 	zwlr_layer_surface_v1_set_exclusive_zone(layer_surface, -1);
 	zwlr_layer_surface_v1_set_keyboard_interactivity(layer_surface, true);
 	zwlr_layer_surface_v1_add_listener(layer_surface, &layer_surface_listener, context);
-
 	wl_surface_commit(context->surface);
 	wl_display_roundtrip(context->display);
 	menu_render_items(menu);
