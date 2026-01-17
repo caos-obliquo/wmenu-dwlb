@@ -1,44 +1,34 @@
-# wmenu
+# wmenu-dwlb
 
-wmenu is an efficient dynamic menu for Sway and wlroots based Wayland
-compositors. It provides a Wayland-native dmenu replacement which maintains the
-look and feel of dmenu.
+wmenu fork that positions itself in dwlb's title section.
 
-> NOTE: this is my fork of [wmenu](https://codeberg.org/adnano/wmenu). The original project is awesome and I do not
-> take credit for it. 
+Fork of [wmenu](https://git.sr.ht/~adnano/wmenu).
 
-## New Features
+## What it does
 
-1. Added center flag (-c), which centers the menu vertically and horizontally.
-1. Added minimum width flag (-w \[number#\]), which is self explanatory, and only
-   applies to centered wmenus.
+Positions wmenu in the middle section of dwlb by reading bar geometry from `/tmp/dwlb-geometry`. Use `-t` flag to enable.
 
-TODO:
-1. [ ] Update documentation.
+## Requirements
+
+- Modified dwlb that writes geometry file (see [dwlb-geometry fork](link-to-your-dwlb))
+- dwl compositor
 
 ## Installation
-
-Dependencies:
-
-- cairo
-- pango
-- wayland
-- xkbcommon
-- scdoc (optional)
-
-```
-$ meson setup build
-$ ninja -C build
-# ninja -C build install
+```bash
+cd build && meson .. && ninja
+sudo ninja install
 ```
 
 ## Usage
-
-See wmenu(1)
-
-To use wmenu with Sway, you can add the following to your configuration file:
-
+```bash
+wmenu-run -t
 ```
-set $menu wmenu-run
-bindsym $mod+d exec $menu
+
+In dwl config.h:
+```c
+static const char *menucmd[] = { "wmenu-run", "-t", "-i", NULL };
 ```
+
+## Configuration
+
+Colors defined in `menu.c`. Modify to match your dwlb theme.
