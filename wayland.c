@@ -496,6 +496,11 @@ handle_global (void *data, struct wl_registry *registry, uint32_t name,
       context->xdg_wm_base
           = wl_registry_bind (registry, name, &xdg_wm_base_interface, 1);
     }
+  else if (strcmp (interface, xdg_activation_v1_interface.name) == 0)
+    {
+      context->activation
+          = wl_registry_bind (registry, name, &xdg_activation_v1_interface, 1);
+    }
 }
 
 static const struct wl_registry_listener registry_listener = {
