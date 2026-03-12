@@ -219,7 +219,7 @@ render_to_cairo (struct menu *menu, cairo_t *cairo)
   if (menu->position == POSITION_CENTER)
     {
       // fully transparent background
-      cairo_set_source_rgba (cairo, 0, 0, 0, 0);
+      cairo_set_source_rgba (cairo, 0.157, 0.165, 0.212, 0.85);
       cairo_paint (cairo);
       // border rectangle
       cairo_set_operator (cairo, CAIRO_OPERATOR_OVER);
